@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>无畏契约 · 花样玩法抽卡机</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#080f13;--panel:#121c23;--panel2:#182830;--line:#243743;
+    --red:#ff4655;--red2:#ff7d6b;--cream:#ece8e1;--muted:#8ba0aa;--sub:#a6bac2;
+  }
+  html,body{margin:0}
+  body{
+    background:var(--bg);color:var(--cream);min-height:100vh;
+    font-family:"HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(900px 420px at 50% -8%,rgba(255,70,85,.20),transparent 70%),
+      radial-gradient(600px 500px at 100% 100%,rgba(0,120,160,.12),transparent 70%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.55;
+    background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+                      linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+    background-size:46px 46px;
+    -webkit-mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 72%);
+    mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 72%);
+  }
+  .wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:clamp(18px,3.4vw,40px) clamp(14px,3vw,26px) 70px}
+
+  /* 顶部品牌 */
+  .brand{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+  .logo{
+    width:clamp(44px,9vw,56px);height:clamp(44px,9vw,56px);flex:none;
+    background:linear-gradient(140deg,var(--red),var(--red2));color:#0a1015;
+    display:grid;place-items:center;font-weight:900;font-size:clamp(20px,4.4vw,26px);
+    clip-path:polygon(0 0,100% 0,100% 70%,70% 100%,0 100%);
+    box-shadow:0 0 34px rgba(255,70,85,.38);
+  }
+  h1{margin:0;font-size:clamp(19px,3.6vw,28px);letter-spacing:1.5px;line-height:1.2}
+  h1 em{font-style:normal;color:var(--red)}
+  .brand p{margin:5px 0 0;font-size:clamp(11px,2.4vw,13px);color:var(--muted);letter-spacing:1.2px}
+
+  /* 控制面板 */
+  .panel{
+    position:relative;padding:18px clamp(14px,3vw,22px) 20px;
+    background:linear-gradient(180deg,#131f26,#0b1319);
+    border:1px solid var(--line);
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%);
+    display:flex;flex-direction:column;gap:16px;
+  }
+  .panel-row[hidden]{display:none}
+  .panel-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .label{font-size:11px;letter-spacing:2px;color:var(--muted);min-width:58px}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button,.chip{
+    font-family:inherit;cursor:pointer;border:1px solid var(--line);
+    background:#0e181e;color:var(--muted);font-size:13px;letter-spacing:.5px;
+    padding:8px 15px;transition:.18s ease;
+    clip-path:polygon(0 0,100% 0,100% 72%,calc(100% - 9px) 100%,0 100%);
+  }
+  .seg button:hover,.chip:hover{border-color:#3a5563;color:var(--cream)}
+  .seg button.active{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 6px 20px rgba(255,70,85,.30)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:7px;padding:8px 14px}
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:#40565f;transition:.18s}
+  .chip.active{border-color:var(--red);color:var(--cream);background:#1a2229;box-shadow:inset 0 0 0 1px rgba(255,70,85,.35)}
+  .chip.active .dot{background:var(--red);box-shadow:0 0 9px var(--red)}
+  .chip small{font-size:10px;color:#647b85;letter-spacing:0}
+  .chip.active small{color:#ffb3b8}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+  .btn-primary{
+    flex:1 1 240px;font-family:inherit;font-weight:800;font-size:15px;letter-spacing:3px;
+    padding:14px 20px;border:0;cursor:pointer;color:#fff;
+    background:linear-gradient(135deg,var(--red),#e0303f);
+    clip-path:polygon(0 0,100% 0,100% 74%,calc(100% - 14px) 100%,0 100%);
+    transition:.18s;box-shadow:0 8px 26px rgba(255,70,85,.30);
+  }
+  .btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+  .btn-primary:active{transform:translateY(1px)}
+  .btn-ghost{
+    font-family:inherit;font-size:13px;letter-spacing:1px;padding:14px 22px;cursor:pointer;
+    background:transparent;color:var(--cream);border:1px solid #33474f;
+    clip-path:polygon(0 0,100% 0,100% 74%,calc(100% - 12px) 100%,0 100%);transition:.18s;
+  }
+  .btn-ghost:hover{border-color:var(--red);color:var(--red)}
+
+  /* 结果区 */
+  .board{margin-top:22px;display:flex;flex-direction:column;gap:16px}
+  .empty{
+    text-align:center;padding:44px 20px;border:1px dashed #263a44;color:#5d737d;
+    font-size:13px;letter-spacing:1px;
+    background:radial-gradient(circle at 50% 0%,rgba(255,70,85,.06),transparent 60%);
+  }
+  .empty strong{display:block;color:#c8d3d8;font-size:16px;margin-bottom:8px;letter-spacing:2px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px}
+  .card{
+    position:relative;padding:14px 15px 16px;
+    background:linear-gradient(160deg,#182a33,#0f1a20 62%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 26px rgba(0,0,0,.30);
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%);
+  }
+  .card::before{
+    content:"";position:absolute;left:0;top:0;width:58%;height:2px;
+    background:linear-gradient(90deg,var(--red),transparent);
+  }
+  .card-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .pindex{
+    font-size:10px;font-weight:800;letter-spacing:1px;color:var(--red);
+    border:1px solid rgba(255,70,85,.45);padding:2px 6px;flex:none;
+  }
+  .pname{
+    flex:1 1 auto;min-width:0;width:100%;font-family:inherit;font-size:13px;font-weight:600;
+    color:var(--cream);background:transparent;border:0;border-bottom:1px solid transparent;
+    padding:3px 2px;outline:none;letter-spacing:1px;
+  }
+  .pname:hover,.pname:focus{border-bottom-color:#33474f}
+  .reroll{
+    flex:none;font-family:inherit;font-size:11px;letter-spacing:1px;cursor:pointer;
+    color:#8ba0aa;background:#0e181e;border:1px solid #2b404a;padding:4px 9px;transition:.18s;
+  }
+  .reroll:hover{color:#fff;background:var(--red);border-color:var(--red)}
+
+  .sec{padding:9px 0 8px;border-top:1px dashed rgba(255,255,255,.07)}
+  .sec:first-of-type{border-top:0;padding-top:2px}
+  .hero-art + .sec{border-top:0;padding-top:6px}
+  .hero-art{
+    position:relative;height:clamp(150px,24vw,195px);margin:2px -15px 4px;
+    display:grid;place-items:center;overflow:hidden;
+    background:
+      radial-gradient(ellipse at 50% 32%,rgba(255,70,85,.20),transparent 68%),
+      repeating-linear-gradient(135deg,rgba(255,255,255,.03) 0 1px,transparent 1px 9px);
+  }
+  .hero-art img{
+    width:100%;height:100%;object-fit:contain;object-position:center bottom;
+    filter:drop-shadow(0 8px 16px rgba(0,0,0,.55));
+    transition:transform .35s ease;
+  }
+  .card.player:hover .hero-art img{transform:scale(1.05)}
+  .role-tag{
+    position:absolute;right:8px;top:8px;font-size:10px;letter-spacing:2px;color:#fff;
+    background:rgba(255,70,85,.92);padding:2px 8px;
+    clip-path:polygon(0 0,100% 0,100% 68%,calc(100% - 6px) 100%,0 100%);
+  }
+  .sec-label{font-size:10px;letter-spacing:2.5px;color:#6d838d}
+  .sec-main{font-size:clamp(16px,3.4vw,19px);font-weight:700;margin-top:2px;line-height:1.3}
+  .sec-main small{font-size:10px;font-weight:400;color:#7b919b;letter-spacing:1.5px;margin-left:6px}
+  .sec-sub{font-size:11.5px;line-height:1.55;color:var(--sub);margin-top:3px}
+  .task-sec .sec-label{display:flex;align-items:center;gap:6px}
+  .task-sec .sec-label .lv{font-size:9px;padding:1px 6px;letter-spacing:1px}
+  .task-text{font-size:13.5px;line-height:1.55;font-weight:600;margin-top:4px;color:#e7e2da}
+
+  .mission{
+    padding:16px clamp(14px,3vw,20px) 18px;
+    background:linear-gradient(120deg,#1d1216,#101a20 70%);
+    border-left:3px solid var(--red);
+    clip-path:none;
+  }
+  .mission::before{display:none}
+  .mission-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .tag{
+    font-size:10px;letter-spacing:2px;color:#fff;background:var(--red);
+    padding:3px 9px;clip-path:polygon(0 0,100% 0,100% 68%,calc(100% - 7px) 100%,0 100%);
+  }
+  .lv{font-size:10px;letter-spacing:1px;padding:2px 8px;border:1px solid;color:#9ad2a8;border-color:#2f5c3d}
+  .lv.hard{color:#ffb3b8;border-color:#6b2b32}
+  .lv.mid{color:#ffd89a;border-color:#6a5525}
+  .mission-text{font-size:clamp(16px,3.6vw,19px);font-weight:700;line-height:1.45}
+  .mission-sub{margin-top:6px;font-size:11px;color:#738892;letter-spacing:.5px}
+
+  /* 动画 */
+  .sk{
+    height:11px;border-radius:2px;margin-top:7px;
+    background:linear-gradient(90deg,#1c2f38,#28414c,#1c2f38);
+    background-size:200% 100%;animation:shimmer 1.1s linear infinite;
+  }
+  .sk.label{height:8px;width:40%}
+  .sk.main{height:16px;width:72%;margin-top:9px}
+  .sk.sub{width:92%}
+  @keyframes shimmer{0%{background-position:150% 0}100%{background-position:-50% 0}}
+  @keyframes pop{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+  .reveal{animation:pop .32s cubic-bezier(.2,.7,.3,1) both}
+
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translate(-50%,14px);z-index:99;
+    background:#0f1c23;border:1px solid var(--red);color:var(--cream);
+    padding:10px 18px;font-size:13px;letter-spacing:1px;opacity:0;pointer-events:none;
+    transition:.25s;clip-path:polygon(0 0,100% 0,100% 70%,calc(100% - 10px) 100%,0 100%);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  footer{margin-top:34px;text-align:center;font-size:11px;color:#4e626b;letter-spacing:1.5px;line-height:1.9}
+
+  @media (max-width:480px){
+    .label{min-width:100%}
+    .grid{grid-template-columns:1fr}
+    .btn-ghost{flex:1 1 100%;padding:12px}
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="brand">
+    <div class="logo">V</div>
+    <div>
+      <h1>无畏契约 · <em>花样玩法</em></h1>
+      <p>VALORANT CHAOS GENERATOR</p>
+    </div>
+  </header>
+
+  <section class="panel" id="panel">
+    <div class="panel-row">
+      <span class="label">队伍人数</span>
+      <div class="seg" id="seg">
+        <button data-n="2">2 人</button>
+        <button data-n="3" class="active">3 人</button>
+        <button data-n="4">4 人</button>
+        <button data-n="5">5 人</button>
+      </div>
+    </div>
+
+    <div class="panel-row">
+      <span class="label">玩法项目</span>
+      <div class="chips" id="chips">
+        <button class="chip active" data-cat="hero" aria-pressed="true"><span class="dot"></span>随机英雄</button>
+        <button class="chip active" data-cat="task" aria-pressed="true"><span class="dot"></span>随机任务</button>
+        <button class="chip active" data-cat="gun" aria-pressed="true"><span class="dot"></span>随机枪械</button>
+        <button class="chip active" data-cat="item" aria-pressed="true"><span class="dot"></span>随机道具</button>
+      </div>
+    </div>
+
+    <div class="panel-row" id="scopeRow">
+      <span class="label">任务分配</span>
+      <div class="seg" id="taskScope">
+        <button data-scope="team" class="active">全队一条</button>
+        <button data-scope="each">每人一条</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="rollBtn">开始抽卡</button>
+      <button class="btn-ghost" id="copyBtn">复制结果</button>
+    </div>
+  </section>
+
+  <section class="board" id="board"></section>
+
+  <footer>可多选也可单选 · 抽到什么玩什么<br>娱乐为主，输赢随缘</footer>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- 数据池 ---------- */
+const ROLE_DESC = {
+  '决斗': '主动开战，正面压制',
+  '先锋': '先手开团，制造机会',
+  '控场': '掌控视野，封锁区域',
+  '哨兵': '稳住后方，守住阵地'
+};
+
+const HEROES = [
+  {n:'捷风', e:'JETT', r:'决斗', img:'assets/捷风.png'},
+  {n:'不死鸟', e:'PHOENIX', r:'决斗', img:'assets/不死鸟.png'},
+  {n:'雷兹', e:'RAZE', r:'决斗', img:'assets/雷兹.png'},
+  {n:'芮娜', e:'REYNA', r:'决斗', img:'assets/芮娜.png'},
+  {n:'夜露', e:'YORU', r:'决斗', img:'assets/夜露.png'},
+  {n:'霓虹', e:'NEON', r:'决斗', img:'assets/霓虹.png'},
+  {n:'壹决', e:'ISO', r:'决斗', img:'assets/壹决.png'},
+  {n:'幻棱', e:'WAYLAY', r:'决斗', img:'assets/幻棱.png'},
+  {n:'猎枭', e:'SOVA', r:'先锋', img:'assets/猎枭.png'},
+  {n:'铁臂', e:'BREACH', r:'先锋', img:'assets/铁臂.png'},
+  {n:'斯凯', e:'SKYE', r:'先锋', img:'assets/斯凯.png'},
+  {n:'黑梦', e:'FADE', r:'先锋', img:'assets/黑梦.png'},
+  {n:'盖可', e:'GEKKO', r:'先锋', img:'assets/盖可.png'},
+  {n:'钛狐', e:'TEJO', r:'先锋', img:'assets/钛狐.png'},
+  {n:'K/O', e:'KAY/O', r:'先锋', img:'assets/K-O.png'},
+  {n:'炼狱', e:'BRIMSTONE', r:'控场', img:'assets/炼狱.png'},
+  {n:'蝰蛇', e:'VIPER', r:'控场', img:'assets/蝰蛇.png'},
+  {n:'幽影', e:'OMEN', r:'控场', img:'assets/幽影.png'},
+  {n:'星礈', e:'ASTRA', r:'控场', img:'assets/星礈.png'},
+  {n:'海神', e:'HARBOR', r:'控场', img:'assets/海神.png'},
+  {n:'暮蝶', e:'CLOVE', r:'控场', img:'assets/暮蝶.png'},
+  {n:'贤者', e:'SAGE', r:'哨兵', img:'assets/贤者.png'},
+  {n:'零', e:'CYPHER', r:'哨兵', img:'assets/零.png'},
+  {n:'奇乐', e:'KILLJOY', r:'哨兵', img:'assets/奇乐.png'},
+  {n:'钢锁', e:'DEADLOCK', r:'哨兵', img:'assets/钢锁.png'},
+  {n:'维斯', e:'VYSE', r:'哨兵', img:'assets/维斯.png'},
+  {n:'尚勃勒', e:'CHAMBER', r:'哨兵', img:'assets/尚勃勒.png'}
+];
+
+const SKILLS = {
+  'JETT': {c:'瞬云', q:'凌空', e:'逐风', x:'飓刃'},
+  'PHOENIX': {c:'火冒三丈', q:'火热手感', e:'闪光曲球', x:'再火一回'},
+  'RAZE': {c:'花车巡游', q:'惊喜翻腾', e:'彩雷飞溅', x:'晚安焰火'},
+  'REYNA': {c:'睥睨', q:'噬尽', e:'逐散', x:'女皇旨令'},
+  'YORU': {c:'出其不意', q:'攻其不备', e:'不请自来', x:'神鬼不觉'},
+  'NEON': {c:'高速通道', q:'闪电弹球', e:'充能疾驰', x:'超限暴走'},
+  'ISO': {c:'绝对屏障', q:'稳态剥离', e:'战斗心流', x:'决斗通牒'},
+  'WAYLAY': {c:'光棱闪爆', q:'光速飞跃', e:'溯流回光', x:'时光修罗场'},
+  'SOVA': {c:'枭型无人机', q:'雷击箭', e:'寻敌箭', x:'狂猎之怒'},
+  'BREACH': {c:'剧震余波', q:'闪点爆破', e:'山崩地陷', x:'惊雷卷地'},
+  'SKYE': {c:'愈生之息', q:'辟林之虎', e:'引路之隼', x:'追猎之灵'},
+  'FADE': {c:'黯兽', q:'幽爪', e:'诡眼', x:'夜临'},
+  'GEKKO': {c:'嗨爆全场', q:'顽皮搭档', e:'炫晕光波', x:'无敌超鲨'},
+  'TEJO': {c:'潜袭爬虫', q:'特快专递', e:'精准投放', x:'末日审判'},
+  'KAY/O': {c:'碎片溢出', q:'闪存过载', e:'零点嗅探', x:'无效命令'},
+  'BRIMSTONE': {c:'振奋信标', q:'燃烧榴弹', e:'空投烟幕', x:'天基光束'},
+  'VIPER': {c:'蛇吻', q:'瘴云', e:'毒幕', x:'蝰腹'},
+  'OMEN': {c:'践影', q:'暗魇', e:'黑瘴', x:'离魂'},
+  'ASTRA': {c:'重力之阱', q:'新星脉冲', e:'星云', x:'宇宙分裂'},
+  'HARBOR': {c:'乱涌', q:'狂潮', e:'海盾', x:'怒涛'},
+  'CLOVE': {c:'虹吸', q:'整蛊', e:'霞染', x:'化蝶'},
+  'SAGE': {c:'玉城', q:'薄冰', e:'逢春', x:'再起'},
+  'CYPHER': {c:'震慑绊线', q:'赛博囚笼', e:'战术监控', x:'神经取析'},
+  'KILLJOY': {c:'纳米蜂群', q:'自动哨兵', e:'哨戒炮台', x:'全面封锁'},
+  'DEADLOCK': {c:'阻域屏障', q:'声感陷阱', e:'重力捕网', x:'断魂索道'},
+  'VYSE': {c:'剃刀藤蔓', q:'裁断', e:'弧光玫瑰', x:'铁棘禁园'},
+  'CHAMBER': {c:'贵宾限行', q:'金牌猎头', e:'闪转自如', x:'孤高火力'}
+};
+
+const GUNS = [
+  {n:'标配', t:'手枪'}, {n:'短炮', t:'手枪'}, {n:'狂怒', t:'手枪'},
+  {n:'鬼魅', t:'手枪'}, {n:'正义', t:'手枪'},
+  {n:'蜂刺', t:'冲锋枪'}, {n:'骇灵', t:'冲锋枪'},
+  {n:'判官', t:'霰弹枪'}, {n:'雄鹿', t:'霰弹枪'},
+  {n:'獠犬', t:'步枪'}, {n:'戍卫', t:'步枪'},
+  {n:'幻影', t:'步枪'}, {n:'狂徒', t:'步枪'},
+  {n:'飞将', t:'狙击枪'}, {n:'冥驹', t:'狙击枪'},
+  {n:'战神', t:'机枪'}, {n:'奥丁', t:'机枪'}
+];
+
+const ITEM_RULES = [
+  {t:'本场只许使用 C 技能', d:s => `技能只剩「${s.c}」，Q / E / 终极全部封印。`},
+  {t:'本场只许使用 Q 技能', d:s => `技能只剩「${s.q}」，C / E / 终极全部封印。`},
+  {t:'本场只许使用 E 技能', d:s => `技能只剩「${s.e}」，C / Q / 终极全部封印。`},
+  {t:'只许使用 C 和 Q 技能', d:s => `「${s.c}」和「${s.q}」可用，E 与终极封印。`},
+  {t:'禁用终极技能', d:s => `「${s.x}」本场不许按，只能靠小技能和枪法。`},
+  {t:'每回合先交 C 技能', d:s => `开局必须先把「${s.c}」用出去，再谈别的。`},
+  {t:'每回合先交 E 技能', d:s => `开局必须先把「${s.e}」用出去，再谈别的。`},
+  {t:'终极技能本场只能按一次', d:s => `「${s.x}」只许开一次，想清楚再用。`},
+  {t:'技能全封，一个都不许按', d:s => `「${s.c}」「${s.q}」「${s.e}」「${s.x}」全部禁用，纯拼枪法。`}
+];
+
+function makeItem(hero){
+  const s = SKILLS[hero.e] || {c:'C 技能', q:'Q 技能', e:'E 技能', x:'终极技能'};
+  const rule = one(ITEM_RULES);
+  return {t: rule.t, d: rule.d(s)};
+}
+
+const TASKS = [
+  {t:'全队本场至少完成 1 次近战刀击杀', lv:'轻松'},
+  {t:'至少完成 1 次 1v2 及以上的残局获胜', lv:'硬核'},
+  {t:'任意一回合全员存活并赢下这回合', lv:'进阶'},
+  {t:'本场至少完成 3 次致盲后击杀', lv:'进阶'},
+  {t:'至少 1 人完成一次“忍者拆包”（无队友掩护）', lv:'硬核'},
+  {t:'全队本场合计击杀 ≥ 20', lv:'轻松'},
+  {t:'至少 1 次经济局（全员余额 < 1500）获胜', lv:'进阶'},
+  {t:'本场至少完成 2 次非常规点位击杀', lv:'进阶'},
+  {t:'全队至少 2 次同时进攻同一个包点', lv:'轻松'},
+  {t:'本场至少 1 次用技能（非枪械）完成击杀', lv:'进阶'},
+  {t:'至少 1 人完成 3 连杀及以上', lv:'硬核'},
+  {t:'全队本场至少使用 4 种不同的终极技能', lv:'轻松'}
+];
+
+const PERSONAL_TASKS = [
+  {t:'本场至少完成 1 次 1v2 及以上的残局获胜', lv:'硬核'},
+  {t:'本场完成 3 次爆头击杀', lv:'进阶'},
+  {t:'本场至少 1 次近战刀击杀', lv:'轻松'},
+  {t:'本场至少 1 次用技能造成击杀', lv:'进阶'},
+  {t:'本场至少 1 次无伤击杀（全程不掉血）', lv:'进阶'},
+  {t:'本场至少 2 次助攻', lv:'轻松'},
+  {t:'本场至少 1 次回防击杀', lv:'进阶'},
+  {t:'本场至少 1 次开局 10 秒内击杀', lv:'进阶'},
+  {t:'本场至少完成 1 次拆包或安装包', lv:'轻松'},
+  {t:'本场至少 1 次 3 连杀', lv:'硬核'},
+  {t:'本场单回合造成 500 点以上伤害', lv:'进阶'},
+  {t:'本场至少 1 次从背后完成击杀', lv:'轻松'}
+];
+
+/* ---------- 状态 ---------- */
+const state = {
+  players: 3,
+  cats: {hero:true, task:true, gun:true, item:true},
+  taskScope: 'team',
+  names: {},
+  result: null
+};
+
+const $ = id => document.getElementById(id);
+const board = $('board');
+const panel = $('panel');
+let timers = [];
+
+function clearTimers(){
+  timers.forEach(clearTimeout);
+  timers = [];
+}
+function after(ms, fn){
+  timers.push(setTimeout(fn, ms));
+}
+function shuffled(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function one(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+function enabledCats(){
+  return ['hero','task','gun','item'].filter(k => state.cats[k]);
+}
+function enabledCount(){
+  return ['hero','gun','item'].filter(k => state.cats[k]).length
+    + (state.cats.task && state.taskScope === 'each' ? 1 : 0);
+}
+function syncChip(key){
+  const chip = document.querySelector('.chip[data-cat="' + key + '"]');
+  if(!chip) return;
+  chip.classList.toggle('active', state.cats[key]);
+  chip.setAttribute('aria-pressed', String(state.cats[key]));
+}
+function updateScopeRow(){
+  $('scopeRow').hidden = !state.cats.task;
+}
+
+/* ---------- 抽卡 ---------- */
+function generateData(){
+  const n = state.players;
+  const heroes = shuffled(HEROES);
+  const guns = shuffled(GUNS);
+
+  const players = [];
+  for(let i = 0; i < n; i++){
+    players.push({
+      name: state.names[i] || '玩家 ' + (i + 1),
+      hero: state.cats.hero ? heroes[i] : null,
+      gun: state.cats.gun ? guns[i % guns.length] : null,
+      item: state.cats.item ? makeItem(heroes[i]) : null,
+      task: state.cats.task && state.taskScope === 'each' ? one(PERSONAL_TASKS) : null
+    });
+  }
+  const teamTask = state.cats.task && state.taskScope === 'team' ? one(TASKS) : null;
+  return { task: teamTask, players };
+}
+
+function skeletonPlayer(i){
+  const blocks = '<div class="sec"><div class="sk label"></div><div class="sk main"></div><div class="sk sub"></div></div>';
+  return `
+    <div class="card-head">
+      <span class="pindex">P${i + 1}</span>
+      <input class="pname" maxlength="10" value="抽取中…" aria-label="玩家名称" readonly>
+    </div>
+    ${blocks.repeat(Math.max(1, enabledCount()))}
+  `;
+}
+
+function cardSections(p){
+  const out = [];
+  if(p.hero){
+    out.push(`<div class="hero-art">
+      <img src="${p.hero.img}" alt="${p.hero.n} 立绘" loading="lazy" decoding="async">
+      <span class="role-tag">${p.hero.r}</span>
+    </div>
+    <div class="sec">
+      <div class="sec-label">英雄</div>
+      <div class="sec-main">${p.hero.n}<small>${p.hero.e}</small></div>
+      <div class="sec-sub">${p.hero.r} · ${ROLE_DESC[p.hero.r]}</div>
+    </div>`);
+  }
+  if(p.gun){
+    out.push(`<div class="sec">
+      <div class="sec-label">枪械</div>
+      <div class="sec-main">${p.gun.n}</div>
+      <div class="sec-sub">本场只能用这一把 · ${p.gun.t}</div>
+    </div>`);
+  }
+  if(p.item){
+    out.push(`<div class="sec">
+      <div class="sec-label">道具</div>
+      <div class="sec-main">${p.item.t}</div>
+      <div class="sec-sub">${p.item.d}</div>
+    </div>`);
+  }
+  if(p.task){
+    out.push(`<div class="sec task-sec">
+      <div class="sec-label">个人任务<span class="lv ${levelClass(p.task.lv)}">${p.task.lv}</span></div>
+      <div class="task-text">${p.task.t}</div>
+    </div>`);
+  }
+  if(!out.length){
+    out.push(`<div class="sec"><div class="sec-sub">当前没有选择任何玩法项目</div></div>`);
+  }
+  return out.join('');
+}
+
+function fillPlayer(el, p, idx){
+  const name = state.names[idx] !== undefined ? state.names[idx] : p.name;
+  el.innerHTML = `
+    <div class="card-head">
+      <span class="pindex">P${idx + 1}</span>
+      <input class="pname" maxlength="10" value="${name.replace(/"/g,'&quot;')}" aria-label="玩家名称">
+      <button class="reroll" data-i="${idx}" title="重抽这位玩家">重抽</button>
+    </div>
+    <div class="reveal">${cardSections(p)}</div>
+  `;
+}
+
+function levelClass(lv){
+  return lv === '硬核' ? 'hard' : (lv === '进阶' ? 'mid' : 'easy');
+}
+
+function roll(){
+  clearTimers();
+  if(!enabledCats().length){
+    toast('至少选择一项玩法');
+    return;
+  }
+  state.result = generateData();
+  const r = state.result;
+
+  board.innerHTML = '';
+
+  let missionEl = null;
+  if(r.task){
+    missionEl = document.createElement('div');
+    missionEl.className = 'card mission';
+    missionEl.innerHTML = `
+      <div class="mission-head"><span class="tag">本场任务</span></div>
+      <div class="sk main" style="width:70%;height:18px"></div>
+      <div class="sk sub" style="width:40%"></div>
+    `;
+    board.appendChild(missionEl);
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  const cards = [];
+  for(let i = 0; i < state.players; i++){
+    const c = document.createElement('div');
+    c.className = 'card player';
+    c.innerHTML = skeletonPlayer(i);
+    grid.appendChild(c);
+    cards.push(c);
+  }
+  board.appendChild(grid);
+
+  if(missionEl){
+    after(560, () => {
+      missionEl.innerHTML = `
+        <div class="mission-head">
+          <span class="tag">本场任务</span>
+          <span class="lv ${levelClass(r.task.lv)}">${r.task.lv}</span>
+        </div>
+        <div class="mission-text reveal">${r.task.t}</div>
+        <div class="mission-sub">全队共享目标，做到就算赢</div>
+      `;
+    });
+  }
+
+  cards.forEach((c, i) => {
+    after(760 + i * 130, () => fillPlayer(c, r.players[i], i));
+  });
+
+  $('rollBtn').textContent = '再来一局';
+}
+
+/* ---------- 单卡重抽 ---------- */
+function rerollPlayer(idx){
+  if(!state.result) return;
+  const p = state.result.players[idx];
+  if(state.cats.hero) p.hero = one(HEROES);
+  if(state.cats.gun) p.gun = one(GUNS);
+  if(state.cats.item && p.hero) p.item = makeItem(p.hero);
+  if(state.cats.task && state.taskScope === 'each') p.task = one(PERSONAL_TASKS);
+
+  const el = board.querySelectorAll('.card.player')[idx];
+  if(!el) return;
+  const name = state.names[idx] !== undefined ? state.names[idx] : p.name;
+  el.innerHTML = skeletonPlayer(idx);
+  after(420, () => {
+    fillPlayer(el, p, idx);
+    el.querySelector('.pname').value = name;
+  });
+}
+
+/* ---------- 复制 ---------- */
+function copyResult(){
+  if(!state.result){ toast('先抽一次再复制'); return; }
+  const lines = ['无畏契约 · 花样玩法'];
+  if(state.result.task) lines.push('【本场任务】' + state.result.task.t + '（' + state.result.task.lv + '）');
+  state.result.players.forEach((p, i) => {
+    const parts = [];
+    if(p.hero) parts.push('英雄 ' + p.hero.n + '(' + p.hero.e + ')');
+    if(p.gun) parts.push('枪械 ' + p.gun.n + '(' + p.gun.t + ')');
+    if(p.item) parts.push('道具 ' + p.item.t + '（' + p.item.d + '）');
+    if(p.task) parts.push('个人任务 ' + p.task.t + '（' + p.task.lv + '）');
+    lines.push(p.name + '：' + parts.join(' ｜ '));
+  });
+  const text = lines.join('\n');
+  const done = () => toast('已复制到剪贴板');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, done){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try{ document.execCommand('copy'); done(); }catch(e){ toast('复制失败，请手动截图'); }
+  document.body.removeChild(ta);
+}
+
+/* ---------- 提示 ---------- */
+let toastTimer = null;
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+/* ---------- 交互绑定 ---------- */
+$('seg').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-n]');
+  if(!btn) return;
+  state.players = Number(btn.dataset.n);
+  $('seg').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+  if(state.result) roll();
+});
+
+$('chips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  const k = chip.dataset.cat;
+  const next = !state.cats[k];
+  let projected = enabledCats().length - (next ? 0 : 1);
+  if(k === 'hero' && !next && state.cats.item) projected -= 1;
+  if(k === 'item' && next && !state.cats.hero) projected += 1;
+  if(projected < 1){
+    toast('至少保留一项玩法');
+    return;
+  }
+  state.cats[k] = next;
+  syncChip(k);
+  if(k === 'item' && next && !state.cats.hero){
+    state.cats.hero = true;
+    syncChip('hero');
+    toast('道具基于英雄技能，已自动开启「随机英雄」');
+  }
+  if(k === 'hero' && !next && state.cats.item){
+    state.cats.item = false;
+    syncChip('item');
+    toast('已同时关闭「随机道具」');
+  }
+  updateScopeRow();
+  if(state.result) roll();
+});
+
+$('taskScope').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-scope]');
+  if(!btn) return;
+  state.taskScope = btn.dataset.scope;
+  $('taskScope').querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+  if(state.result) roll();
+});
+
+$('rollBtn').addEventListener('click', roll);
+$('copyBtn').addEventListener('click', copyResult);
+
+board.addEventListener('click', e => {
+  const btn = e.target.closest('.reroll');
+  if(btn) rerollPlayer(Number(btn.dataset.i));
+});
+
+board.addEventListener('input', e => {
+  const inp = e.target.closest('.pname');
+  if(!inp) return;
+  const card = inp.closest('.card.player');
+  const idx = Array.from(board.querySelectorAll('.card.player')).indexOf(card);
+  if(idx < 0) return;
+  state.names[idx] = inp.value;
+  if(state.result) state.result.players[idx].name = inp.value || ('玩家 ' + (idx + 1));
+});
+
+/* ---------- 初始画面 ---------- */
+board.innerHTML = '<div class="empty"><strong>准备开始</strong>选好人数和玩法项目，点「开始抽卡」<br>每人会拿到专属的玩法组合</div>';
+</script>
+</body>
+</html>
